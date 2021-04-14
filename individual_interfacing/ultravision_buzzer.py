@@ -1,5 +1,4 @@
 import RPi.GPIO as GPIO
-from gpiozero import PWMOutputDevice
 import time
 
 #Use mode BOARD(Pin numbers) or BCM(GPIO numbers)
@@ -10,7 +9,6 @@ GPIO.setwarnings(False)
 TRIG = 23 #PIN 16
 ECHO = 24 #PIN 18
 BUZZER = 16 #PIN 36
-MOTOR = 14 #PIN 8
 
 print("Setting Trigger, Echo and Buzzer Pins...")
 
@@ -20,8 +18,6 @@ GPIO.setup(TRIG, GPIO.OUT)
 GPIO.setup(ECHO, GPIO.IN)
 #Set Buzzer as Output Pin
 GPIO.setup(BUZZER, GPIO.OUT)
-#Set MOTOR as PWMOutputDevice
-motor = PWMOutputDevice(MOTOR)
 
 #Ensure that Trigger is set to low initially and let sensor settle.
 GPIO.output(TRIG, False) 
@@ -69,10 +65,6 @@ def beep_frequency(distance):
     # If the distance is smaller than 10 cm, beep constantly.
     else:
         return 0
-
-def calculate_vibration(distance):
-    vibration = (((distance - 0.01) * -1) / (0.5 - 0.01)) + 1
-    return round(vibration, 1)
     
 def main():
     try:
@@ -87,19 +79,15 @@ def main():
             if(freq == -1):
                 GPIO.output(BUZZER, False)
                 time.sleep(0.25)
-                motor.value = 0
             #Continuous Beeping Edge Case #2
             elif(freq == 0):
                 GPIO.output(BUZZER, True)
                 time.sleep(0.25)
-                motor.value = 0.9
             else:
                 GPIO.output(BUZZER, True)
                 time.sleep(0.2) #Start beep for 0.2 seconds on entering any range
                 GPIO.output(BUZZER, False)
                 time.sleep(freq) #Beep according to returned frequency
-                print('Vibration =',calculate_vibration(distance*0.01))
-                motor.value = calculate_vibration(distance*0.01)
     except KeyboardInterrupt:
         #Set Buzzer output to False and Clean up GPIOs
         GPIO.output(BUZZER, False)
